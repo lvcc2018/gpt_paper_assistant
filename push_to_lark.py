@@ -117,7 +117,7 @@ def render_title(paper_entry: Paper, counter: int) -> str:
     return paper_string
 
 
-def push_to_lack(papers_dict):
+def push_to_lark(papers_dict):
     lark_bot = LarkBot()
     lark_bot.send(papers_dict)
 
