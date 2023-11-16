@@ -22,6 +22,7 @@ class LarkBot:
         body =json.dumps({"msg_type": "interactive","card":card})
         headers = {"Content-Type":"application/json"}
         res = requests.post(url=url, data=body, headers=headers)
+        print(res)
 
     def format_paper_context(self, papers_dict):
         paper_list_all = []
