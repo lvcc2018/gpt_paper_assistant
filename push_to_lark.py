@@ -126,4 +126,4 @@ if __name__ == "__main__":
     # parse output.json into a dict
     with open("out/output.json", "r") as f:
         output = json.load(f)
-    push_to_lack(output)
+    push_to_lark(output)
