@@ -46,7 +46,7 @@ class LarkBot:
             elements.append({
             "tag": "div",
             "text": {
-                "content": f"**{i}.** {paper_name}",
+                "content": f"{paper_name}",
                 "tag": "lark_md"
             }
             })
