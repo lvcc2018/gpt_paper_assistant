@@ -254,5 +254,4 @@ if __name__ == "__main__":
                 )
             else:
                 push_to_slack(selected_papers)
-        if config["OUTPUT"].getboolean("push_to_lark"):
-            push_to_lark(selected_papers)
+        push_to_lark(selected_papers)
