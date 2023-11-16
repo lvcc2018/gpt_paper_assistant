@@ -18,6 +18,7 @@ class LarkBot:
         self.secret = secret
 
     def send(self, body) -> None:
+        body = self.format_paper_context(body)
         body =json.dumps({"msg_type": "interactive","card":body})
         headers = {"Content-Type":"application/json"}
         res = requests.post(url=url, data=body, headers=headers)
