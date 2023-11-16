@@ -80,7 +80,7 @@ class LarkBot:
         return body
 
 
-def render_title(paper_entry: Paper, counter: int) -> str:
+def render_title(paper_entry, counter: int) -> str:
     """
     :param counter: is the position of the paper in the list
     :param paper_entry: is a dict from a json. an example is
@@ -96,13 +96,12 @@ def render_title(paper_entry: Paper, counter: int) -> str:
     # get the authors
     authors = paper_entry["authors"]
     paper_string = (
-        "<"
-        + arxiv_url
-        + "|*"
-        + str(counter)
-        + ". "
+        str(counter)
+        + ". ["
         + title.replace("&", "&amp;")
-        + "*>\n"
+        + "]("
+        + arxiv_url
+        + ")\n"
     )
     paper_string += f'*Authors*: {", ".join(authors)}\n\n'
     return paper_string
