@@ -35,7 +35,7 @@ class LarkBot:
             {
             "tag": "div",
             "text": {
-                "content": f"Total relevant papers: **{str(len(title_strings))}**\nTable of contents with paper titles:\n",
+                "content": f"Total relevant papers: *{str(len(title_strings))}*\n\n",
                 "tag": "lark_md"
             }
             }
@@ -97,11 +97,11 @@ def render_title(paper_entry, counter: int) -> str:
     authors = paper_entry["authors"]
     paper_string = (
         str(counter)
-        + ". ["
+        + ". *["
         + title.replace("&", "&amp;")
-        + "]("
+        + "]*("
         + arxiv_url
-        + ")\n"
+        + ")\n\n"
     )
     paper_string += f'*Authors*: {", ".join(authors)}\n\n'
     return paper_string
