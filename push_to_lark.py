@@ -10,24 +10,18 @@ from datetime import datetime
 
 import requests
 
-WEBHOOK_URL = (
-    "https://open.feishu.cn/open-apis/bot/v2/hook/b3732b76-9d57-4fab-8e11-10635557b7b7"
-)
+url = "https://open.feishu.cn/open-apis/bot/v2/hook/b3732b76-9d57-4fab-8e11-10635557b7b7"
 
 
 class LarkBot:
     def __init__(self, secret=None) -> None:
         self.secret = secret
 
-    def send(self, paper_dict) -> None:
-        params = self.format_paper_context(paper_dict)
-        resp = requests.post(url=WEBHOOK_URL, json=params)
-        resp.raise_for_status()
-        result = resp.json()
-        if result.get("code") and result["code"] != 0:
-            print(result["msg"])
-            return
-        print("消息发送成功")
+    def send(self, body) -> None:
+        card = json.dumps(body)
+        body =json.dumps({"msg_type": "interactive","card":card})
+        headers = {"Content-Type":"application/json"}
+        res = requests.post(url=url, data=body, headers=headers)
 
     def format_paper_context(self, papers_dict):
         paper_list_all = []
@@ -36,57 +30,52 @@ class LarkBot:
         title_strings = [
             render_title(paper, i) for i, paper in enumerate(papers_dict.values())
         ]
-        # paper_strings = [
-        #     render_paper(paper, i) for i, paper in enumerate(papers_dict.values())
-        # ]
         elements = [
             {
-                "tag": "markdown",
-                "content": f"**Personalized Daily Arxiv Papers {datetime.today().strftime('%m-%d-%Y')}**",
-            },
-            {
-                "tag": "markdown",
-                "content": f"Total relevant papers: **{str(len(title_strings))}**\nTable of contents with paper titles:",
-            },
-            {"tag": "hr"},
-        ]
-        for i in range(10):
-            paper_name = title_strings[i]
-            elements.append({"tag": "markdown", "content": f"**{i}.** {paper_name}"})
-        elements.append(
-            {
-                "tag": "action",
-                "actions": [
-                    {
-                        "tag": "button",
-                        "text": {"tag": "plain_text", "content": "See it in Web"},
-                        "type": "primary",
-                        "multi_url": {
-                            "url": "https://lvcc2018.github.io/gpt_paper_assistant/",
-                            "pc_url": "",
-                            "android_url": "",
-                            "ios_url": "",
-                        },
-                    }
-                ],
+            "tag": "div",
+            "text": {
+                "content": f"Total relevant papers: **{str(len(title_strings))}**\nTable of contents with paper titles:\n",
+                "tag": "lark_md"
             }
-        )
-        lack_block_list = [
-            [
-                {
-                    "config": {"wide_screen_mode": True},
-                    "elements": elements,
-                    "header": {
-                        "template": "blue",
-                        "title": {
-                            "content": "Paper alert bot update on  ${time}",
-                            "tag": "plain_text",
-                        },
-                    },
-                }
-            ]
+            }
         ]
-        return lack_block_list
+
+        for i in range(min(10, len(title_strings))):
+            paper_name = title_strings[i]
+            elements.append({
+            "tag": "div",
+            "text": {
+                "content": f"**{i}.** {paper_name}",
+                "tag": "lark_md"
+            }
+            })
+
+        elements.extend([{
+            "actions": [
+                {
+                "tag": "button",
+                "text": {
+                    "content": "See it in Web",
+                    "tag": "plain_text"
+                },
+                "type": "primary",
+                "url": "https://lvcc2018.github.io/gpt_paper_assistant/"
+                },
+            ],
+            "tag": "action"
+            }
+        ])
+        body = {
+        "elements": elements,
+        "header": {
+            "template": "turquoise",
+            "title": {
+            "content": f"Personalized Daily Arxiv Papers {datetime.today().strftime('%m-%d-%Y')}",
+            "tag": "plain_text"
+            }
+        }
+        }
+        return body
 
 
 def render_title(paper_entry: Paper, counter: int) -> str:
