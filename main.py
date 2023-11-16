@@ -13,6 +13,7 @@ from arxiv_scraper import get_papers_from_arxiv_rss_api
 from filter_papers import filter_by_author, filter_by_gpt
 from parse_json_to_md import render_md_string
 from push_to_slack import push_to_slack
+from push_to_lark import push_to_lark
 from arxiv_scraper import EnhancedJSONEncoder
 
 T = TypeVar("T")
@@ -253,3 +254,5 @@ if __name__ == "__main__":
                 )
             else:
                 push_to_slack(selected_papers)
+        if config["OUTPUT"].getboolean("push_to_lark"):
+            push_to_lark(selected_papers)
