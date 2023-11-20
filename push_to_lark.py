@@ -97,9 +97,9 @@ def render_title(paper_entry, counter: int) -> str:
     authors = paper_entry["authors"]
     paper_string = (
         str(counter)
-        + ". *["
+        + ". ["
         + title.replace("&", "&amp;")
-        + "]*("
+        + "]("
         + arxiv_url
         + ")\n\n"
     )
