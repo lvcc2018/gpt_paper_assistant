@@ -114,8 +114,10 @@ def get_papers_from_arxiv_rss(area: str, config: Optional[dict]) -> List[Paper]:
         title = re.sub("\(arXiv:[0-9]+\.[0-9]+v[0-9]+ \[.*\]\)$", "", paper.title)
         # remove the link part of the id
         id = paper.link.split("/")[-1]
+        # get the abstract from summary
+        abstract = summary.split('Abstract: ')[-1]
         # make a new paper
-        new_paper = Paper(authors=authors, title=title, abstract=summary, arxiv_id=id)
+        new_paper = Paper(authors=authors, title=title, abstract=abstract, arxiv_id=id)
         paper_list.append(new_paper)
 
     return paper_list, timestamp, last_id
