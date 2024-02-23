@@ -182,6 +182,7 @@ if __name__ == "__main__":
     S2_API_KEY = os.environ.get("S2_KEY")
     OAI_KEY = os.environ.get("OAI_KEY")
     BASE_URL = os.environ.get("OAI_BASE_URL")
+    print(OAI_KEY, BASE_URL)
     if OAI_KEY is None or BASE_URL is None:
         raise ValueError(
             "OpenAI key is not set - please set OAI_KEY to your OpenAI key"
