@@ -24,13 +24,13 @@ def render_paper(paper_entry: dict, idx: int) -> str:
     paper_string += f"**Abstract:** {abstract}\n\n"
     if "COMMENT" in paper_entry:
         comment = paper_entry["COMMENT"]
-        paper_string += f"**Comment:** {comment}\n"
+        paper_string += f"**Comment:** {comment}\n\n"
     if "RELEVANCE" in paper_entry and "NOVELTY" in paper_entry:
         # get the relevance and novelty scores
         relevance = paper_entry["RELEVANCE"]
         novelty = paper_entry["NOVELTY"]
-        paper_string += f"**Relevance:** {relevance}\n"
-        paper_string += f"**Novelty:** {novelty}\n"
+        paper_string += f"**Relevance:** {relevance}\n\n"
+        paper_string += f"**Novelty:** {novelty}\n\n"
     return paper_string + "\n---\n"
 
 
