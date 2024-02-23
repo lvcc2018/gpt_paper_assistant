@@ -27,6 +27,7 @@ jobs:
     - name: Run main
       env:
         OAI_KEY: ${{ secrets.OAI_KEY }}
+        OAI_BASE_URL: ${{ secrets.OAI_KEY }}
         SLACK_KEY: ${{ secrets.SLACK_KEY }}
         SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
       run: |
