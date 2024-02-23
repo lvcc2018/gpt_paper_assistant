@@ -5,7 +5,11 @@ It will run daily via github actions and can post this information to slack via 
 
 A simple demo of the daily papers can be seen [here](https://tatsu-lab.github.io/gpt_paper_assistant/) running on `cs.CL`
 
-As a cost estimate, running this on all of `cs.CL, LG, AI` cost about $0.7 ($0.5 for `cs.LG`, $0.2 for `cs.CL`) on 11/12/2023
+As a cost estimate, running this on all of `cs.CL` cost $0.07 on 2/7/2024
+
+## Changelog
+- **2/15/2024**: fixed a bug with author parsing in the RSS format + cost estimates for title filtering being off + crash when 0 papers are on the feed. 
+- **2/7/2024**: fixed a critical issue from ArXiv changing their RSS format. Added and enabled a title filtering to reduce costs.
 
 
 ## Quickstart
@@ -107,7 +111,7 @@ The NOVELTY should be a score from 1 to 10, where 10 is a groundbreaking, genera
 4. Papers are filtered if they have scores below either the relevance and novelty cutoffs in `config.ini`
 5. Papers are given an overall score based on equal weight to relevance and novelty
 
-Finally, both the author-matched and GPT evaluated papers are sorted by the score and the papers are rendered and pushed into their endpoints (text files or Slack).
+Finally, all papers are sorted by the max of their `author_match_score` and the sum of the GPT-rated relevance and novelty scores (the relevance and novelty scores will only show up in the final output if they are above the cutoff thresholds you set in the config file). Then the papers are rendered and pushed into their endpoints (text files or Slack).
 
 ## Contributing 
 This repo uses ruff - `ruff check .` and `ruff format .` 
