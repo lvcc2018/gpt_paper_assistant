@@ -10,7 +10,7 @@ from datetime import datetime
 
 import requests
 
-url = "https://open.feishu.cn/open-apis/bot/v2/hook/b3732b76-9d57-4fab-8e11-10635557b7b7"
+url = "https://open.feishu.cn/open-apis/bot/v2/hook/a2d6c6f7-0a5b-4bff-b07a-607afae439e6"
 
 
 class LarkBot:
