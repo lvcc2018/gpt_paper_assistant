@@ -1,16 +1,38 @@
 """
 Code to render the output.json into a format suitable for a slackbot, and to push it to slack using webhooks
 """
+
 import json
 from datetime import datetime
 
-from arxiv_scraper import Paper
-
-from datetime import datetime
-
 import requests
+import os
 
-url = "https://open.feishu.cn/open-apis/bot/v2/hook/b3732b76-9d57-4fab-8e11-10635557b7b7"
+from openai import OpenAI
+
+url = (
+    "https://open.feishu.cn/open-apis/bot/v2/hook/b3732b76-9d57-4fab-8e11-10635557b7b7"
+)
+
+def get_abstract(abstract):
+    OAI_KEY = os.environ.get("OAI_KEY")
+    BASE_URL = os.environ.get("OAI_BASE_URL")
+    prompt = "你是一个优秀的研究员，你的同事希望你能够用简短的话总结一下这个摘要的内容。请你写一下。"
+    messages = [
+        {"role": "system", "content": prompt},
+        {"role": "user", "content": abstract},
+    ]
+    client = OpenAI(
+        # This is the default and can be omitted
+        api_key=OAI_KEY,
+        base_url=BASE_URL,
+    )
+    chat_completion = client.chat.completions.create(
+        messages=messages,
+        model="gpt-4o-2024-05-13",
+    )
+
+    return chat_completion.choices[0].message.content
 
 
 class LarkBot:
@@ -19,8 +41,8 @@ class LarkBot:
 
     def send(self, body) -> None:
         body = self.format_paper_context(body)
-        body =json.dumps({"msg_type": "interactive","card":body})
-        headers = {"Content-Type":"application/json"}
+        body = json.dumps({"msg_type": "interactive", "card": body})
+        headers = {"Content-Type": "application/json"}
         res = requests.post(url=url, data=body, headers=headers)
         print(res)
 
@@ -28,54 +50,115 @@ class LarkBot:
         paper_list_all = []
         if len(papers_dict) == 0:
             return paper_list_all
-        title_strings = [
+        paper_info = [
             render_title(paper, i) for i, paper in enumerate(papers_dict.values())
         ]
-        elements = [
-            {
-            "tag": "div",
-            "text": {
-                "content": f"Total relevant papers: *{str(len(title_strings))}*\n\n",
-                "tag": "lark_md"
-            }
-            }
-        ]
 
-        for i in range(min(10, len(title_strings))):
-            paper_name = title_strings[i]
-            elements.append({
-            "tag": "div",
-            "text": {
-                "content": f"{paper_name}",
-                "tag": "lark_md"
-            }
-            })
+        elements = []
 
-        elements.extend([{
-            "actions": [
+        for i in range(len(paper_info)):
+            paper_authors = ", ".join(paper_info[i][3])
+            abstract = get_abstract(paper_info[i][2])
+            elements.append(
                 {
-                "tag": "button",
-                "text": {
-                    "content": "See it in Web",
-                    "tag": "plain_text"
-                },
-                "type": "primary",
-                "url": "https://lvcc2018.github.io/gpt_paper_assistant/"
-                },
-            ],
-            "tag": "action"
-            }
-        ])
+                    "tag": "markdown",
+                    "content": f"<text_tag >{i+1}</text_tag>**[{paper_info[i][0]}]({paper_info[i][1]})** \n<text_tag color='indigo'>Authors</text_tag>*<font color='blue'>{paper_authors}</font>*\n\n{abstract}",
+                    "text_align": "left",
+                    "text_size": "notation",
+                }
+            )
+
         body = {
-        "elements": elements,
-        "header": {
-            "template": "turquoise",
-            "title": {
-            "content": f"Personalized Daily Arxiv Papers {datetime.today().strftime('%m-%d-%Y')}",
-            "tag": "plain_text"
-            }
+            "config": {"wide_screen_mode": True},
+            "i18n_elements": {
+                "zh_cn": [
+                    {
+                        "tag": "repeat",
+                        "variable": "papers",
+                        "elements": [
+                            {
+                                "tag": "column_set",
+                                "flex_mode": "stretch",
+                                "background_style": "grey",
+                                "horizontal_spacing": "8px",
+                                "horizontal_align": "left",
+                                "columns": [
+                                    {
+                                        "tag": "column",
+                                        "width": "weighted",
+                                        "vertical_align": "top",
+                                        "vertical_spacing": "8px",
+                                        "background_style": "default",
+                                        "elements": [
+                                            {
+                                                "tag": "column_set",
+                                                "flex_mode": "none",
+                                                "background_style": "default",
+                                                "horizontal_spacing": "16px",
+                                                "horizontal_align": "left",
+                                                "columns": [
+                                                    {
+                                                        "tag": "column",
+                                                        "width": "weighted",
+                                                        "vertical_align": "top",
+                                                        "vertical_spacing": "8px",
+                                                        "background_style": "default",
+                                                        "elements": elements,
+                                                        "weight": 1,
+                                                    }
+                                                ],
+                                            }
+                                        ],
+                                        "weight": 5,
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                    {
+                        "tag": "action",
+                        "actions": [
+                            {
+                                "tag": "button",
+                                "text": {"tag": "plain_text", "content": "查看更多"},
+                                "type": "default",
+                                "complex_interaction": True,
+                                "multi_url": {
+                                    "url": "https://lvcc2018.github.io/gpt_paper_assistant/",
+                                    "pc_url": "",
+                                    "ios_url": "",
+                                    "android_url": "",
+                                },
+                            }
+                        ],
+                    },
+                    {
+                        "tag": "note",
+                        "elements": [
+                            {"tag": "plain_text", "content": "💡本栏目每天为你推荐论文"}
+                        ],
+                    },
+                ]
+            },
+            "i18n_header": {
+                "zh_cn": {
+                    "title": {
+                        "tag": "plain_text",
+                        "content": f"{datetime.today().strftime('%m-%d-%Y')}   论文推送",
+                    },
+                    "subtitle": {
+                        "tag": "plain_text",
+                        "content": f"相关论文数：{len(paper_info)}   ",
+                    },
+                    "template": "blue",
+                    "ud_icon": {
+                        "tag": "standard_icon",
+                        "token": "table-group_outlined",
+                    },
+                }
+            },
         }
-        }
+
         print(body)
         return body
 
@@ -84,7 +167,20 @@ def render_title(paper_entry, counter: int) -> str:
     """
     :param counter: is the position of the paper in the list
     :param paper_entry: is a dict from a json. an example is
-    {"paperId": "2754e70eaa0c2d40972c47c4c23210f0cece8bfc", "externalIds": {"ArXiv": "2310.16834", "CorpusId": 264451832}, "title": "Discrete Diffusion Language Modeling by Estimating the Ratios of the Data Distribution", "abstract": "Despite their groundbreaking performance for many generative modeling tasks, diffusion models have fallen short on discrete data domains such as natural language. Crucially, standard diffusion models rely on the well-established theory of score matching, but efforts to generalize this to discrete structures have not yielded the same empirical gains. In this work, we bridge this gap by proposing score entropy, a novel discrete score matching loss that is more stable than existing methods, forms an ELBO for maximum likelihood training, and can be efficiently optimized with a denoising variant. We scale our Score Entropy Discrete Diffusion models (SEDD) to the experimental setting of GPT-2, achieving highly competitive likelihoods while also introducing distinct algorithmic advantages. In particular, when comparing similarly sized SEDD and GPT-2 models, SEDD attains comparable perplexities (normally within $+10\\%$ of and sometimes outperforming the baseline). Furthermore, SEDD models learn a more faithful sequence distribution (around $4\\times$ better compared to GPT-2 models with ancestral sampling as measured by large models), can trade off compute for generation quality (needing only $16\\times$ fewer network evaluations to match GPT-2), and enables arbitrary infilling beyond the standard left to right prompting.", "year": 2023, "authors": [{"authorId": "2261494043", "name": "Aaron Lou"}, {"authorId": "83262128", "name": "Chenlin Meng"}, {"authorId": "2490652", "name": "Stefano Ermon"}], "ARXIVID": "2310.16834", "COMMENT": "The paper shows a significant advance in the performance of diffusion language models, directly meeting one of the criteria.", "RELEVANCE": 10, "NOVELTY": 8}, "2310.16779": {"paperId": "edc8953d559560d3237fc0b27175cdb1114c0ca5", "externalIds": {"ArXiv": "2310.16779", "CorpusId": 264451949}, "title": "Multi-scale Diffusion Denoised Smoothing", "abstract": "Along with recent diffusion models, randomized smoothing has become one of a few tangible approaches that offers adversarial robustness to models at scale, e.g., those of large pre-trained models. Specifically, one can perform randomized smoothing on any classifier via a simple\"denoise-and-classify\"pipeline, so-called denoised smoothing, given that an accurate denoiser is available - such as diffusion model. In this paper, we investigate the trade-off between accuracy and certified robustness of denoised smoothing: for example, we question on which representation of diffusion model would maximize the certified robustness of denoised smoothing. We consider a new objective that aims collective robustness of smoothed classifiers across multiple noise levels at a shared diffusion model, which also suggests a new way to compensate the cost of accuracy in randomized smoothing for its certified robustness. This objective motivates us to fine-tune diffusion model (a) to perform consistent denoising whenever the original image is recoverable, but (b) to generate rather diverse outputs otherwise. Our experiments show that this fine-tuning scheme of diffusion models combined with the multi-scale smoothing enables a strong certified robustness possible at highest noise level while maintaining the accuracy closer to non-smoothed classifiers.", "year": 2023, "authors": [{"authorId": "83125078", "name": "Jongheon Jeong"}, {"authorId": "2261688831", "name": "Jinwoo Shin"}], "ARXIVID": "2310.16779", "COMMENT": "The paper presents an advancement in the performance of diffusion models, specifically in the context of denoised smoothing.", "RELEVANCE": 9, "NOVELTY": 7}
+    {"paperId": "2754e70eaa0c2d40972c47c4c23210f0cece8bfc",
+    "externalIds": {"ArXiv": "2310.16834", "CorpusId": 264451832},
+    "title": "Discrete Diffusion Language Modeling by Estimating the Ratios of the Data Distribution",
+    "abstract": "Despite their groundbreaking performance for ... and enables arbitrary infilling beyond the standard left to right prompting.",
+    "year": 2023,
+    "authors":
+        [
+            {"authorId": "2261494043", "name": "Aaron Lou"},
+            {"authorId": "83262128", "name": "Chenlin Meng"},
+            {"authorId": "2490652", "name": "Stefano Ermon"}
+        ],
+    "ARXIVID": "2310.16834",
+    "COMMENT": "The paper shows a significant advance in the performance of diffusion language models, directly meeting one of the criteria.", "RELEVANCE": 10,
+    "NOVELTY": 8}
     :return: a slackbot-appropriate mrkdwn formatted string showing the arxiv id, title, arxiv url, abstract, authors, score and comment (if those fields exist)
     """
     # get the arxiv id
@@ -93,18 +189,11 @@ def render_title(paper_entry, counter: int) -> str:
     title = paper_entry["title"]
     # get the arxiv url
     arxiv_url = f"https://arxiv.org/abs/{arxiv_id}"
+    # get the abstract
+    abstract = paper_entry["abstract"]
     # get the authors
     authors = paper_entry["authors"]
-    paper_string = (
-        str(counter)
-        + ". ["
-        + title.replace("&", "&amp;")
-        + "]("
-        + arxiv_url
-        + ")\n\n"
-    )
-    paper_string += f'*Authors*: {", ".join(authors)}\n\n'
-    return paper_string
+    return [title, arxiv_url, abstract, authors]
 
 
 def push_to_lark(papers_dict):
