@@ -45,6 +45,7 @@ class LarkBot:
         # headers = {"Content-Type": "application/json"}
         # res = requests.post(url=url, data=body, headers=headers)
         # print(res)
+        body = self.format_paper_context(body)
         content = {
             "type":"template",
             "data":{
