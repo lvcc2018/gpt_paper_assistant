@@ -40,8 +40,19 @@ class LarkBot:
         self.secret = secret
 
     def send(self, body) -> None:
-        body = self.format_paper_context(body)
-        body = json.dumps({"msg_type": "interactive", "card": body})
+        # body = self.format_paper_context(body)
+        # body = json.dumps({"msg_type": "interactive", "card": body})
+        # headers = {"Content-Type": "application/json"}
+        # res = requests.post(url=url, data=body, headers=headers)
+        # print(res)
+        content = {
+            "type":"template",
+            "data":{
+                    "template_id": "AAqHnfDNDRgpr",    
+                    "template_variable": body,
+                }
+            }
+        body = json.dumps({"msg_type": "interactive", "card": json.dumps(content, ensure_ascii=False)})
         headers = {"Content-Type": "application/json"}
         res = requests.post(url=url, data=body, headers=headers)
         print(res)
@@ -59,105 +70,121 @@ class LarkBot:
         for i in range(len(paper_info)):
             paper_authors = ", ".join(paper_info[i][3])
             abstract = get_abstract(paper_info[i][2])
+            # elements.append(
+            #     {
+            #         "tag": "markdown",
+            #         "content": f"<text_tag >{i+1}</text_tag>**[{paper_info[i][0]}]({paper_info[i][1]})** \n<text_tag color='indigo'>Authors</text_tag>*<font color='blue'>{paper_authors}</font>*\n\n{abstract}",
+            #         "text_align": "left",
+            #         "text_size": "notation",
+            #     }
+            # )
             elements.append(
                 {
-                    "tag": "markdown",
-                    "content": f"<text_tag >{i+1}</text_tag>**[{paper_info[i][0]}]({paper_info[i][1]})** \n<text_tag color='indigo'>Authors</text_tag>*<font color='blue'>{paper_authors}</font>*\n\n{abstract}",
-                    "text_align": "left",
-                    "text_size": "notation",
+                    "paperid": i+1,
+                    "title": f"{paper_info[i][0]}",
+                    "url": f"{paper_info[i][1]}",
+                    "authors": paper_authors,
+                    "abstract": abstract
+
                 }
             )
-
+        
         body = {
-            "config": {"wide_screen_mode": True},
-            "i18n_elements": {
-                "zh_cn": [
-                    {
-                        "tag": "repeat",
-                        "variable": "papers",
-                        "elements": [
-                            {
-                                "tag": "column_set",
-                                "flex_mode": "stretch",
-                                "background_style": "grey",
-                                "horizontal_spacing": "8px",
-                                "horizontal_align": "left",
-                                "columns": [
-                                    {
-                                        "tag": "column",
-                                        "width": "weighted",
-                                        "vertical_align": "top",
-                                        "vertical_spacing": "8px",
-                                        "background_style": "default",
-                                        "elements": [
-                                            {
-                                                "tag": "column_set",
-                                                "flex_mode": "none",
-                                                "background_style": "default",
-                                                "horizontal_spacing": "16px",
-                                                "horizontal_align": "left",
-                                                "columns": [
-                                                    {
-                                                        "tag": "column",
-                                                        "width": "weighted",
-                                                        "vertical_align": "top",
-                                                        "vertical_spacing": "8px",
-                                                        "background_style": "default",
-                                                        "elements": elements,
-                                                        "weight": 1,
-                                                    }
-                                                ],
-                                            }
-                                        ],
-                                        "weight": 5,
-                                    }
-                                ],
-                            }
-                        ],
-                    },
-                    {
-                        "tag": "action",
-                        "actions": [
-                            {
-                                "tag": "button",
-                                "text": {"tag": "plain_text", "content": "查看更多"},
-                                "type": "default",
-                                "complex_interaction": True,
-                                "multi_url": {
-                                    "url": "https://lvcc2018.github.io/gpt_paper_assistant/",
-                                    "pc_url": "",
-                                    "ios_url": "",
-                                    "android_url": "",
-                                },
-                            }
-                        ],
-                    },
-                    {
-                        "tag": "note",
-                        "elements": [
-                            {"tag": "plain_text", "content": "💡本栏目每天为你推荐论文"}
-                        ],
-                    },
-                ]
-            },
-            "i18n_header": {
-                "zh_cn": {
-                    "title": {
-                        "tag": "plain_text",
-                        "content": f"{datetime.today().strftime('%m-%d-%Y')}   论文推送",
-                    },
-                    "subtitle": {
-                        "tag": "plain_text",
-                        "content": f"相关论文数：{len(paper_info)}   ",
-                    },
-                    "template": "blue",
-                    "ud_icon": {
-                        "tag": "standard_icon",
-                        "token": "table-group_outlined",
-                    },
-                }
-            },
-        }
+            "date": datetime.today().strftime('%m-%d-%Y'),
+            "paper_count":len(paper_info),
+            "papers": elements
+            }
+
+        # body = {
+        #     "config": {"wide_screen_mode": True},
+        #     "i18n_elements": {
+        #         "zh_cn": [
+        #             {
+        #                 "tag": "repeat",
+        #                 "variable": "papers",
+        #                 "elements": [
+        #                     {
+        #                         "tag": "column_set",
+        #                         "flex_mode": "stretch",
+        #                         "background_style": "grey",
+        #                         "horizontal_spacing": "8px",
+        #                         "horizontal_align": "left",
+        #                         "columns": [
+        #                             {
+        #                                 "tag": "column",
+        #                                 "width": "weighted",
+        #                                 "vertical_align": "top",
+        #                                 "vertical_spacing": "8px",
+        #                                 "background_style": "default",
+        #                                 "elements": [
+        #                                     {
+        #                                         "tag": "column_set",
+        #                                         "flex_mode": "none",
+        #                                         "background_style": "default",
+        #                                         "horizontal_spacing": "16px",
+        #                                         "horizontal_align": "left",
+        #                                         "columns": [
+        #                                             {
+        #                                                 "tag": "column",
+        #                                                 "width": "weighted",
+        #                                                 "vertical_align": "top",
+        #                                                 "vertical_spacing": "8px",
+        #                                                 "background_style": "default",
+        #                                                 "elements": elements,
+        #                                                 "weight": 1,
+        #                                             }
+        #                                         ],
+        #                                     }
+        #                                 ],
+        #                                 "weight": 5,
+        #                             }
+        #                         ],
+        #                     }
+        #                 ],
+        #             },
+        #             {
+        #                 "tag": "action",
+        #                 "actions": [
+        #                     {
+        #                         "tag": "button",
+        #                         "text": {"tag": "plain_text", "content": "查看更多"},
+        #                         "type": "default",
+        #                         "complex_interaction": True,
+        #                         "multi_url": {
+        #                             "url": "https://lvcc2018.github.io/gpt_paper_assistant/",
+        #                             "pc_url": "",
+        #                             "ios_url": "",
+        #                             "android_url": "",
+        #                         },
+        #                     }
+        #                 ],
+        #             },
+        #             {
+        #                 "tag": "note",
+        #                 "elements": [
+        #                     {"tag": "plain_text", "content": "💡本栏目每天为你推荐论文"}
+        #                 ],
+        #             },
+        #         ]
+        #     },
+        #     "i18n_header": {
+        #         "zh_cn": {
+        #             "title": {
+        #                 "tag": "plain_text",
+        #                 "content": f"{datetime.today().strftime('%m-%d-%Y')}   论文推送",
+        #             },
+        #             "subtitle": {
+        #                 "tag": "plain_text",
+        #                 "content": f"相关论文数：{len(paper_info)}   ",
+        #             },
+        #             "template": "blue",
+        #             "ud_icon": {
+        #                 "tag": "standard_icon",
+        #                 "token": "table-group_outlined",
+        #             },
+        #         }
+        #     },
+        # }
 
         print(body)
         return body
