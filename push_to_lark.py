@@ -92,7 +92,7 @@ class LarkBot:
         
         body = {
             "date": datetime.today().strftime('%m-%d-%Y'),
-            "paper_count":len(paper_info),
+            "papers_count":len(paper_info),
             "papers": elements
             }
 
