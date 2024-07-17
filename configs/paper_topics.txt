@@ -13,6 +13,12 @@
  5. Investigate the relationship between pre-trained language model capabilities, training data distribution, and propose improved data processing and utilization methods.
     - Relevant: Papers that specifically delve into studying the correlation between the capabilities of pre-trained language models and the characteristics of the training data distribution. These papers should explicitly discuss how different aspects of the model's performance, such as language understanding, generation quality, or domain adaptation, are influenced by the properties of the training data. They may analyze the impact of variations in data size, data domain, data diversity, or data imbalance on the model's performance. Relevant papers may propose novel metrics, evaluation methodologies, or theoretical frameworks to assess and quantify the relationship between pre-trained models and training data distribution.
     - Not relevant: Papers that do not specifically investigate the correlation between pre-trained language model capabilities and training data distribution. This includes papers that focus solely on model architectures, optimization techniques, or fine-tuning strategies without explicitly addressing the relationship with training data. Additionally, papers that explore unrelated topics or provide general overviews of pre-trained models without conducting a specific analysis of their relationship with training data distribution would be considered not relevant.
+6. Studies 'training or inference speedup' in the context of neural networks. Training and Inference speedup refer to making large language models run faster during training and inference stages on different architectures like GPUs.
+   - Relevant: Papers that introduce new methods to speed up training and inference process for LLMs.
+   - Not revelant: Papers that do not address improvements for training or inference.
+7. Studies 'model compression' in the context of neural networks. Model compression refers to compressing the large language model to a smaller size while maintaining model capability and accuracy.
+   - Relevant: Papers that introduce new methods for low-bit(8bit/4bit/1bit/fp8) quantization, pruning and distillation.
+   - Not relevant: Papers that do not address improvements in quantization, pruning and distillation
 
 
  In suggesting papers to your friend, remember that he enjoys papers on statistical machine learning, and generative modeling in natural language processing.
