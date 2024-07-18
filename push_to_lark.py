@@ -104,11 +104,13 @@ class LarkBot:
                 }
             )
             records.append({
-                "Title": f"{paper_info[i][0]}",
+                "Title": {
+                    "text": f"{paper_info[i][0]}",
+                    "link": f"{paper_info[i][1]}",
+                    },
                 "Author": paper_authors,
                 "Abstract": paper_info[i][2],
                 "中文简介": abstract,
-                "链接": f"{paper_info[i][1]}",
             })
         
         body = {
@@ -117,13 +119,19 @@ class LarkBot:
             "papers": elements
         }
 
+        print("Start to push to Feishu")
+
         converted_batch_add_data = convert_to_batch_add(records)
+
+        print(converted_batch_add_data)
+
         asyncio.run(table_manager.batch_add_records(
             app_token="SVMCbV2ERa9yIpsSvLZcCKRpnyc", 
             table_id="tblziUoK9LiEdaDZ", 
-            fields = converted_batch_add_data))
-
-        print(body)
+            fields = converted_batch_add_data)
+        )
+        
+        print("=========================================================")
         return body
 
 
