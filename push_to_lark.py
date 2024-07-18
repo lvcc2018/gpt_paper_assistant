@@ -87,6 +87,7 @@ class LarkBot:
         ]
 
         elements = []
+        records = []
 
         for i in range(len(paper_info)):
             paper_authors = ", ".join(paper_info[i][3])
@@ -102,24 +103,25 @@ class LarkBot:
 
                 }
             )
-            push_to_lark_table_data = {
+            records.append({
                 "Title": f"{paper_info[i][0]}",
                 "Author": paper_authors,
                 "Abstract": paper_info[i][2],
                 "中文简介": abstract,
                 "链接": f"{paper_info[i][1]}",
-            }
-            converted_batch_add_data = convert_to_batch_add(push_to_lark_table_data)
-            asyncio.run(table_manager.batch_add_records(
-                app_token="SVMCbV2ERa9yIpsSvLZcCKRpnyc", 
-                table_id="tblziUoK9LiEdaDZ", 
-                fields = converted_batch_add_data))
+            })
         
         body = {
             "date": datetime.today().strftime('%m-%d-%Y'),
             "papers_count":len(paper_info),
             "papers": elements
         }
+
+        converted_batch_add_data = convert_to_batch_add(records)
+        asyncio.run(table_manager.batch_add_records(
+            app_token="SVMCbV2ERa9yIpsSvLZcCKRpnyc", 
+            table_id="tblziUoK9LiEdaDZ", 
+            fields = converted_batch_add_data))
 
         print(body)
         return body
