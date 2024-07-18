@@ -7,12 +7,32 @@ from datetime import datetime
 
 import requests
 import os
+import asyncio
 
 from openai import OpenAI
+from push_to_lark_table import LarkTableManager, TokenManager
 
 url = (
     "https://open.feishu.cn/open-apis/bot/v2/hook/b3732b76-9d57-4fab-8e11-10635557b7b7"
 )
+
+app_id = "cli_a61238134fbd900b"
+app_secret = "fFs7gfSmwauVFQCctoXxpgPqD6djP0bh"
+token_manager = TokenManager(app_id=app_id, app_secret=app_secret)
+table_manager = LarkTableManager(token_manager=token_manager)
+
+def convert_to_batch_add(dict_list: list) -> dict:
+    '''
+    把普通字典列表转换为方便写入飞书多维表格的数据形式
+    '''
+    feishu_dict = {}
+    fields_list = []
+    for data in dict_list:
+        temp_dict = {}
+        temp_dict["fields"] = data
+        fields_list.append(temp_dict)
+    feishu_dict["records"] = fields_list
+    return feishu_dict
 
 def get_abstract(abstract):
     OAI_KEY = os.environ.get("OAI_KEY")
@@ -71,14 +91,7 @@ class LarkBot:
         for i in range(len(paper_info)):
             paper_authors = ", ".join(paper_info[i][3])
             abstract = get_abstract(paper_info[i][2])
-            # elements.append(
-            #     {
-            #         "tag": "markdown",
-            #         "content": f"<text_tag >{i+1}</text_tag>**[{paper_info[i][0]}]({paper_info[i][1]})** \n<text_tag color='indigo'>Authors</text_tag>*<font color='blue'>{paper_authors}</font>*\n\n{abstract}",
-            #         "text_align": "left",
-            #         "text_size": "notation",
-            #     }
-            # )
+
             elements.append(
                 {
                     "paperid": i+1,
@@ -89,103 +102,26 @@ class LarkBot:
 
                 }
             )
+            push_to_lark_table_data = {
+                "Title": f"{paper_info[i][0]}",
+                "Author": paper_authors,
+                "Abstract": paper_info[i][2],
+                "中文简介": abstract,
+                "链接": f"{paper_info[i][1]}",
+            }
+            converted_batch_add_data = convert_to_batch_add(push_to_lark_table_data)
+            asyncio.run(table_manager.batch_add_records(
+                app_token="SVMCbV2ERa9yIpsSvLZcCKRpnyc", 
+                table_id="tblziUoK9LiEdaDZ", 
+                fields = converted_batch_add_data))
         
         body = {
             "date": datetime.today().strftime('%m-%d-%Y'),
             "papers_count":len(paper_info),
             "papers": elements
-            }
+        }
 
-        # body = {
-        #     "config": {"wide_screen_mode": True},
-        #     "i18n_elements": {
-        #         "zh_cn": [
-        #             {
-        #                 "tag": "repeat",
-        #                 "variable": "papers",
-        #                 "elements": [
-        #                     {
-        #                         "tag": "column_set",
-        #                         "flex_mode": "stretch",
-        #                         "background_style": "grey",
-        #                         "horizontal_spacing": "8px",
-        #                         "horizontal_align": "left",
-        #                         "columns": [
-        #                             {
-        #                                 "tag": "column",
-        #                                 "width": "weighted",
-        #                                 "vertical_align": "top",
-        #                                 "vertical_spacing": "8px",
-        #                                 "background_style": "default",
-        #                                 "elements": [
-        #                                     {
-        #                                         "tag": "column_set",
-        #                                         "flex_mode": "none",
-        #                                         "background_style": "default",
-        #                                         "horizontal_spacing": "16px",
-        #                                         "horizontal_align": "left",
-        #                                         "columns": [
-        #                                             {
-        #                                                 "tag": "column",
-        #                                                 "width": "weighted",
-        #                                                 "vertical_align": "top",
-        #                                                 "vertical_spacing": "8px",
-        #                                                 "background_style": "default",
-        #                                                 "elements": elements,
-        #                                                 "weight": 1,
-        #                                             }
-        #                                         ],
-        #                                     }
-        #                                 ],
-        #                                 "weight": 5,
-        #                             }
-        #                         ],
-        #                     }
-        #                 ],
-        #             },
-        #             {
-        #                 "tag": "action",
-        #                 "actions": [
-        #                     {
-        #                         "tag": "button",
-        #                         "text": {"tag": "plain_text", "content": "查看更多"},
-        #                         "type": "default",
-        #                         "complex_interaction": True,
-        #                         "multi_url": {
-        #                             "url": "https://lvcc2018.github.io/gpt_paper_assistant/",
-        #                             "pc_url": "",
-        #                             "ios_url": "",
-        #                             "android_url": "",
-        #                         },
-        #                     }
-        #                 ],
-        #             },
-        #             {
-        #                 "tag": "note",
-        #                 "elements": [
-        #                     {"tag": "plain_text", "content": "💡本栏目每天为你推荐论文"}
-        #                 ],
-        #             },
-        #         ]
-        #     },
-        #     "i18n_header": {
-        #         "zh_cn": {
-        #             "title": {
-        #                 "tag": "plain_text",
-        #                 "content": f"{datetime.today().strftime('%m-%d-%Y')}   论文推送",
-        #             },
-        #             "subtitle": {
-        #                 "tag": "plain_text",
-        #                 "content": f"相关论文数：{len(paper_info)}   ",
-        #             },
-        #             "template": "blue",
-        #             "ud_icon": {
-        #                 "tag": "standard_icon",
-        #                 "token": "table-group_outlined",
-        #             },
-        #         }
-        #     },
-        # }
+        
 
         print(body)
         return body
