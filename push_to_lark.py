@@ -121,8 +121,6 @@ class LarkBot:
             "papers": elements
         }
 
-        
-
         print(body)
         return body
 

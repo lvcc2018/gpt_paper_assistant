@@ -3,15 +3,8 @@ import hashlib
 import aiohttp
 import base64
 import json
-import threading
-import time
-from feishu.log import logger
 from Crypto.Cipher import AES
-from pydantic import BaseModel
-import asyncio
 import requests
-
-from feishu.settings import *
 
 class AESCipher(object):
     def __init__(self, key):
@@ -91,7 +84,6 @@ class LarkTableManager(object):
             "Authorization": "Bearer " + self.token_manager.get_token(),
             "Content-Type": "application/json"
         }
-        logger.info(f"url: {url}")
         if sorts is None:
             payload = json.dumps({
                 "sort": [{"desc": True, "field_name": "获取时间（约）"}]
@@ -107,12 +99,9 @@ class LarkTableManager(object):
                 data = await response.json()
 
         if (data["code"] == 99991668 or data["code"] == 99991663):
-            # token expired
-            logger.warn("Token expired.")
             await self.token_manager.update()
             return await self.get_records(app_token, table_id, page_size, page_token, sorts, read_limits)
-        elif (data["code"] == 0):
-            logger.info("Get table records successfully.")
+        else:
             if data['data']['has_more'] and read_limits=="all":
                 new_data = await self.get_records(app_token, table_id, page_size, data['data']['page_token'], sorts, read_limits)
                 data["data"]["items"].extend(new_data["items"])
@@ -120,8 +109,6 @@ class LarkTableManager(object):
                 return data["data"]
 
             return data["data"]
-        else:
-            logger.error("Unreachable: {}".format(data))
 
     async def modify_records(self, app_token: str, table_id: str, record_id: str, fields: dict) -> str:
         url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/{record_id}"
@@ -130,7 +117,6 @@ class LarkTableManager(object):
             "Authorization": "Bearer " + self.token_manager.get_token(),
             "Content-Type": "application/json"
         }
-        logger.info(f"url: {url}")
         payload = json.dumps(fields)
         
         async with aiohttp.ClientSession() as session:
@@ -138,15 +124,10 @@ class LarkTableManager(object):
                 data = await response.json()
 
         if (data["code"] == 99991668 or data["code"] == 99991663):
-            # token expired
-            logger.warn("Token expired.")
             await self.token_manager.update()
             return await self.modify_records(app_token, table_id, record_id, fields)
-        elif (data["code"] == 0):
-            logger.info(f"Update the record {record_id} successfully.")
-            return data["msg"]
         else:
-            logger.error("Unreachable: {}".format(data))
+            return data["msg"]
 
     async def add_records(self, app_token: str, table_id: str, fields: dict) -> str:
         url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records"
@@ -154,7 +135,6 @@ class LarkTableManager(object):
             "Authorization": "Bearer " + self.token_manager.get_token(),
             "Content-Type": "application/json"
         }
-        logger.info(f"url: {url}")
         payload = json.dumps(fields)
         async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, data=payload) as response:
@@ -167,15 +147,11 @@ class LarkTableManager(object):
                     # Handle non-JSON response
                     print(data)
         if (data["code"] == 99991668 or data["code"] == 99991663):
-            # token expired
-            logger.warn("Token expired.")
             await self.token_manager.update()
             return await self.add_records(app_token, table_id, fields)
         elif (data["code"] == 0):
-            logger.info(f"Add the record successfully.")
             return data
         else:
-            logger.error("Unreachable: {}".format(data))
             return data
 
     async def delete_records(self, app_token:str, table_id:str, records_list:list):
@@ -184,7 +160,6 @@ class LarkTableManager(object):
             "Authorization": "Bearer " + self.token_manager.get_token(),
             "Content-Type": "application/json"
         }
-        logger.info(f"url: {url}")
         payload = json.dumps({
                         "records": records_list
                     })
@@ -199,15 +174,12 @@ class LarkTableManager(object):
                     # Handle non-JSON response
                     print(data)
         if (data["code"] == 99991668 or data["code"] == 99991663):
-            # token expired
-            logger.warn("Token expired.")
             await self.token_manager.update()
             return await self.delete_records(app_token, table_id, records_list)
         elif (data["code"] == 0):
-            logger.info(f"Deleted the record successfully.")
             return data["msg"]
         else:
-            logger.error("Unreachable: {}".format(data))
+            pass
 
     async def printer(self):
         print("test")
@@ -218,7 +190,6 @@ class LarkTableManager(object):
             "Authorization": "Bearer " + self.token_manager.get_token(),
             "Content-Type": "application/json"
         }
-        logger.info(f"url: {url}")
         payload = json.dumps(fields)
         async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, data=payload) as response:
@@ -231,15 +202,11 @@ class LarkTableManager(object):
                     # Handle non-JSON response
                     print(data)
         if (data["code"] == 99991668 or data["code"] == 99991663):
-            # token expired
-            logger.warn("Token expired.")
             await self.token_manager.update()
             return await self.add_records(app_token, table_id, fields)
         elif (data["code"] == 0):
-            logger.info(f"Add the record successfully.")
             return data
         else:
-            logger.error("Unreachable: {}".format(data))
             return data
         
 def convert_to_batch_add(dict_list: list) -> dict:
