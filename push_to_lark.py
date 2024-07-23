@@ -37,7 +37,7 @@ def convert_to_batch_add(dict_list: list) -> dict:
 def get_abstract(abstract):
     OAI_KEY = os.environ.get("OAI_KEY")
     BASE_URL = os.environ.get("OAI_BASE_URL")
-    prompt = "你是一个优秀的研究员，你的同事希望你能够用简短的话总结一下这个摘要的内容。请你写一下。"
+    prompt = "你是一个优秀的研究员，你的同事希望你能够用简短的中文总结一下这个摘要的内容。请你写一下。"
     messages = [
         {"role": "system", "content": prompt},
         {"role": "user", "content": abstract},
