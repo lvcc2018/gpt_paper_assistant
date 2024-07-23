@@ -112,7 +112,7 @@ class LarkTableManager(object):
 
     async def modify_records(self, app_token: str, table_id: str, record_id: str, fields: dict) -> str:
         url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/{record_id}"
-
+        self.token_manager.set_token()
         headers = {
             "Authorization": "Bearer " + self.token_manager.get_token(),
             "Content-Type": "application/json"
@@ -131,6 +131,7 @@ class LarkTableManager(object):
 
     async def add_records(self, app_token: str, table_id: str, fields: dict) -> str:
         url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records"
+        self.token_manager.set_token()
         headers = {
             "Authorization": "Bearer " + self.token_manager.get_token(),
             "Content-Type": "application/json"
@@ -156,6 +157,7 @@ class LarkTableManager(object):
 
     async def delete_records(self, app_token:str, table_id:str, records_list:list):
         url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/batch_delete"
+        self.token_manager.set_token()
         headers = {
             "Authorization": "Bearer " + self.token_manager.get_token(),
             "Content-Type": "application/json"
@@ -186,6 +188,7 @@ class LarkTableManager(object):
 
     async def batch_add_records(self, app_token: str, table_id: str, fields: dict) -> str:
         url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/batch_create"
+        self.token_manager.set_token()
         headers = {
             "Authorization": "Bearer " + self.token_manager.get_token(),
             "Content-Type": "application/json"
