@@ -134,7 +134,8 @@ def filter_papers_by_title(
         )
         model = config["SELECTION"]["model"]
         completion = call_chatgpt(full_prompt, openai_client, model)
-        cost += calc_price(model, completion.usage)
+        # cost += calc_price(model, completion.usage)
+        cost += 0
         out_text = completion.choices[0].message.content
         try:
             filtered_set = set(json.loads(out_text))
